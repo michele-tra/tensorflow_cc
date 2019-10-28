@@ -79,7 +79,7 @@ if(TENSORFLOW_SHARED)
   )
   target_link_libraries(
     tensorflow_cc_shared INTERFACE
-    "${CMAKE_INSTALL_PREFIX}/lib/tensorflow_cc/libtensorflow_cc.so"
+    "${CMAKE_INSTALL_PREFIX}/lib/tensorflow_cc/libtensorflow_cc.so.1"
     dl pthread
   )
   if(SYSTEM_PROTOBUF)
@@ -204,6 +204,12 @@ install(
                  PATTERN "*.tar.*"    EXCLUDE
                  PATTERN "*.zip"      EXCLUDE
 )
+# install all the *.inc files
+install(
+  DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tensorflow/tensorflow/contrib/makefile/gen/"
+  DESTINATION include/tensorflow/tensorflow/contrib/makefile/gen
+  FILES_MATCHING PATTERN "*.inc"
+)
 # install all files from third_party folder (e.g., Eigen/Tensor)
 install(
   DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tensorflow/third_party/"
@@ -219,14 +225,21 @@ endif()
 # shared library specific
 if(TENSORFLOW_SHARED)
   install(
-    FILES "${CMAKE_CURRENT_BINARY_DIR}/tensorflow/bazel-bin/tensorflow/libtensorflow_cc.so"
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/tensorflow/bazel-bin/tensorflow/libtensorflow_cc.so.1"
     DESTINATION lib/tensorflow_cc
     OPTIONAL
   )
   install(
-    FILES "${CMAKE_CURRENT_BINARY_DIR}/tensorflow/bazel-bin/bin/tensorflow/libtensorflow_cc.so"
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/tensorflow/bazel-bin/bin/tensorflow/libtensorflow_cc.so.1"
     DESTINATION lib/tensorflow_cc
     OPTIONAL
+  )
+  # Make versioned symlinks to the library
+  install(CODE "execute_process(                        \
+    COMMAND ${CMAKE_COMMAND} -E create_symlink          \
+      libtensorflow_cc.so.1 				\
+      ${CMAKE_INSTALL_PREFIX}/lib/tensorflow_cc/libtensorflow_cc.so   \
+      )"
   )
 endif()
 # static library specific
